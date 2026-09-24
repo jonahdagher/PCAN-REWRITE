@@ -12,6 +12,53 @@ using namespace std;
 
 WebServer server(80);
 
+class LightSwitchState {
+private:
+  bool _state; // ON or OFF
+  int _brightness; // Value betwen 1 - 100
+
+public:
+
+  //default constructor
+  LightSwitchState(){
+    _state = false;
+    _brightness = 0;
+  }
+
+  //constructor
+  LightSwitchState(bool state, int brightness){
+
+    //protect brightness value
+    if (brightness > 100 || brightness < 0){
+      throw invalid_argument("brightness value must be 0-100");
+    }
+
+    _state = state;
+    _brightness = brightness;
+  }
+
+  //state methods
+  bool getState(){
+    return _state;
+  }
+
+  void setState(bool state){
+    _state = state;
+  }
+
+  int getBrightness(){
+    return _brightness;
+  }
+
+  void setBrightness(int brightness){
+    if (brightness > 100 || brightness < 0){
+      throw invalid_argument("brightness value must be 0-100");
+    }
+
+    _brightness = brightness;
+  }
+};
+
 void handleHome() {
   server.send(200, "text/html", "<h1>Home Page</h1>");
 }
