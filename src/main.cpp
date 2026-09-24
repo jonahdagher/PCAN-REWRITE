@@ -57,6 +57,19 @@ public:
 
     _brightness = brightness;
   }
+
+  //TWAI
+
+  twai_message_t toMessage(){
+    twai_message_t msg = {};
+    msg.extd = 1;
+    msg.identifier = 0x100;
+
+    msg.data[0] = (_state) ? 1 : 0;
+    msg.data[1] = _brightness;
+
+    return msg;
+  }
 };
 
 void handleHome() {
