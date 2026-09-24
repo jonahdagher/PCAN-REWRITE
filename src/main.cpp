@@ -3,13 +3,23 @@
 #include <unordered_map>
 #include <vector>
 #include <WiFi.h>
+#include <WebServer.h>
 
 using namespace std;
 
 #define TX_PIN 32
 #define RX_PIN 33
 
-  WiFiServer server(80);
+WebServer server(80);
+
+void handleHome() {
+  server.send(200, "text/html", "<h1>Home Page</h1>");
+}
+
+void handleTest() {
+  server.send(200, "text/html", "<h1>Test Page</h1>");
+  Serial.println("ON!!");
+}
 
 void setup() {
 
@@ -55,37 +65,18 @@ void setup() {
   Serial.println(WiFi.localIP());
 
   server.begin();
+
+  server.on("/", HTTP_GET, handleHome);
+  server.on("/test", HTTP_GET, handleTest);
 }
 
+
 void loop() {
-  WiFiClient client = server.available();
-
-  if (client) {
-   while (client.connected() && !client.available()){
-    delay(1);
-   }
-
-    String test = "None";
-
-   while (client.available()) {
-    test = client.readStringUntil('\n');
-   }
-
-    client.println("HTTP/1.1 200 OK");
-    client.println("Content-Type: text/html");
-    client.println("Connection: close");
-    client.println();                       // <-- blank line, required
-    client.println("<!DOCTYPE html><html><body>");
-    client.println("<h1>PCAN Light Control</h1>");
-    client.println("<p>Hello from the ESP32</p>");
-    client.print("<input>TEST</input>");
-    client.println("</body></html>");
-
-    client.stop();
-  }
+  server.handleClient();;
 }
 
 // put function definitions here:
+
 
 
 
