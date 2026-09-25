@@ -4,6 +4,7 @@
 #include <vector>
 #include <WiFi.h>
 #include <WebServer.h>
+#include <algorithm>
 
 using namespace std;
 
@@ -12,37 +13,27 @@ using namespace std;
 
 WebServer server(80);
 
-class LightSwitchState {
+class LightSwitch {
+
+//null means no change
 private:
-  bool _state; // ON or OFF
-  int _brightness; // Value betwen 1 - 100
+  int _state; // 0:off, 1:on, -1:null
+  int _brightness; // Value betwen 1 - 100, -1:null
 
 public:
 
   //default constructor
-  LightSwitchState(){
-    _state = false;
-    _brightness = 0;
-  }
-
-  //constructor
-  LightSwitchState(bool state, int brightness){
-
-    //protect brightness value
-    if (brightness > 100 || brightness < 0){
-      throw invalid_argument("brightness value must be 0-100");
-    }
-
-    _state = state;
-    _brightness = brightness;
+  LightSwitch(){
+    _state = -1;
+    _brightness = -1;
   }
 
   //state methods
-  bool getState(){
+  int getState(){
     return _state;
   }
 
-  void setState(bool state){
+  void setState(int state){
     _state = state;
   }
 
@@ -51,9 +42,12 @@ public:
   }
 
   void setBrightness(int brightness){
-    if (brightness > 100 || brightness < 0){
-      throw invalid_argument("brightness value must be 0-100");
+    if (brightness == -1){
+      _brightness = -1;
+      return;
     }
+    brightness = max(brightness, 0);
+    brightness = min(brightness, 100);
 
     _brightness = brightness;
   }
@@ -62,10 +56,12 @@ public:
 
   twai_message_t toMessage(){
     twai_message_t msg = {};
+
     msg.extd = 1;
     msg.identifier = 0x100;
+    msg.data_length_code = 2;
 
-    msg.data[0] = (_state) ? 1 : 0;
+    msg.data[0] = _state;
     msg.data[1] = _brightness;
 
     return msg;
@@ -77,8 +73,12 @@ void handleHome() {
 }
 
 void handleTest() {
-  server.send(200, "text/html", "<h1>Test Page</h1>");
-  Serial.println("ON!!");
+  
+  String state = server.arg("state");
+  String brightness = server.arg("brightness");
+  Serial.println(state);
+  Serial.println(brightness);
+  server.send(200, "text/html", "State: " + state + " | Brightness: " + brightness);
 }
 
 void setup() {
